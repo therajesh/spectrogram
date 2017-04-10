@@ -1,16 +1,14 @@
+#HW6 - Spectrogram
+#Author - Rajesh Narayan
+
 import wave
 import struct
 import numpy as np
 import math
 import image
 
+"""Opens the audio file, unpacks each of the datapoints, and appends them to a list."""
 raw = wave.open("sx222.wav", "rb")
-n = 0
-frame_number = raw.getnframes()
-frame_width = raw.getsampwidth()
-frame_rate = raw.getframerate()
-frame_channels = raw.getnchannels()
-
 
 sample_list = []
 for i in range(raw.getnframes()):
@@ -19,11 +17,8 @@ for i in range(raw.getnframes()):
 	sample_value = struct.unpack('h', frame)
 	sample_list.append(sample_value[0])
 
-#for j in range (1, 43001):
-#	if (j%1000 == 0):
-#		print (sample_list[j])
-#print (frame_rate)
-
+    
+"""Creates windows at intervals of 10 ms, with each window having a length of 25 ms."""
 listofwindows = []
 n = 0
 for n in range(0, (raw.getnframes()-401), 160):
@@ -34,31 +29,27 @@ for n in range(0, (raw.getnframes()-401), 160):
 	listofwindows.append(window)
 
     
-
+"""Computes the Fast Fourier Transform for all the windows, and appends them to a new list."""    
 listoflists = []
 for i in range(len(listofwindows)):
 	listoflists.append(np.fft.fft(listofwindows[i]))
 
-
+    
+"""Takes the list of lists of values which have gone through the FFT, and converts them to log magnitudes. Furthermore, it then converts them to log scale with the formula 10*log10 square magnitude."""
 listofmagnitudes = []
 for i in range(len(listoflists)):
     listofmags1 = []
     for j in range(len(listoflists[i])):
-        m = (listoflists[i][j]).real
-        n = (listoflists[i][j]).imag
-        listofmags1.append(10 * math.log(math.sqrt((m**2)+(n**2))))
+        real = (listoflists[i][j]).real
+        imaginary = (listoflists[i][j]).imag
+        listofmags1.append(10 * math.log(math.sqrt((real**2)+(imaginary**2))))
     listofmagnitudes.append(listofmags1)
 amin = np.amin(listofmagnitudes)
 amax = np.amax(listofmagnitudes)
 
-'''for i in range(len(listofmagnitudes)):
-    listofmagnitudes[i] = (listofmagnitudes[i])**(1/2)
-    for j in range(len(listofmagnitudes[i])):
-        listofmagnitudes[i][j] = 10* math.log10(listofmagnitudes[i][j])
-#print (listofmagnitudes[i])'''
 
-
-win = image.ImageWin("My Window",len(listofmagnitudes),len(listofmagnitudes[0]))
+"""Takes the final 2D list, along with the minimum and maximum values in the list, and turns them into an image with set pixel colors."""
+win = image.ImageWin("Spectrogram",len(listofmagnitudes),len(listofmagnitudes[0]))
 myImage = image.EmptyImage(len(listofmagnitudes),len(listofmagnitudes[0]))
 for row in range(myImage.getHeight()):
     for col in range(myImage.getWidth()):
