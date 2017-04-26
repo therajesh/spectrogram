@@ -82,11 +82,36 @@ def CYK (grammar, input_sentence):
 
     return pointer[0][n]
 
+def getParseTree(root, indent) :
+    if root.status:
+        return '(' + root.root + ' ' + root.terminal + ')'
+        
+        new1 = indent + 2 + len(root.left.root) #len(tree[1][0])
+        new2 = indent + 2 + len(root.right.root) #len(tree[2][0])
+        left = getParseTree(root.left, new1)
+        right = getParseTree(root.right, new2)
+        return '(' + root.root + ' ' + left + '\n' + ' '*indent + right + ')'
+    
+
+def printParseTrees(pointer) :
+    check = False
+    for node in pointer:
+        if node.root == 'S' :
+            print(getParseTree(node, 3))
+            print()
+            check = True
+    
+    if not check:
+        print('The given sentence is not valid according to the grammar')
+        
+
 
 def main():
     grammar, input_sentence = fileInput()
     grammar_rules = grammarRules(grammar)
     final = CYK(grammar_rules, input_sentence)
     print(final)
+    
+    
 
 main()
